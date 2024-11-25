@@ -1,101 +1,97 @@
-import Image from "next/image";
+'use client'
+import { collection, getDocs } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { FaCheckCircle } from 'react-icons/fa'; 
+import { db } from '../firebase'; 
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [transactions, setTransactions] = useState([]);
+  const [balance, setBalance] = useState(0);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const querySnapshot = await getDocs(collection(db, 'transactions'));
+      const data = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTransactions(data);
+    };
+
+    fetchTransactions();
+  }, []);
+
+  const deposits = transactions.filter((txn) => txn.amount > 0);
+  const expenses = transactions.filter((txn) => txn.amount < 0);
+
+  const totalDeposits = deposits.reduce((sum, txn) => sum + txn.amount, 0);
+  const totalExpenses = expenses.reduce((sum, txn) => sum + Math.abs(txn.amount), 0);
+  const currentBalance = totalDeposits - totalExpenses;
+ 
+  return (
+    <div className="container mx-auto p-4">
+      {/* Balance Section */}
+      <div className="text-center mb-6">
+        <h1 className="text-2xl font-bold">Badminton 24-25</h1>
+        <h2 className="text-xl font-bold underline mt-2 bg-green-100 p-3 ">Balance: BDT  {currentBalance.toFixed(2)}</h2>
+        <h3 className="text-green-600">Deposits: BDT  {totalDeposits.toFixed(2)}</h3>
+        <h3 className="text-red-600">Expenses: BDT  {totalExpenses.toFixed(2)}</h3>
+      </div>
+
+      {/* Transaction History */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Deposits Column */}
+        <div>
+          <h2 className="text-lg font-semibold text-green-600">Deposits</h2>
+          {deposits.map((txn) => (
+            <div
+              key={txn.id}
+              className="flex justify-between items-center bg-green-100 p-3 rounded mb-2 shadow-md"
+            >
+              <div>
+                <p className="font-bold">BDT  {txn.amount.toFixed(2)}</p>
+                <p className="text-sm">{txn.description}</p>
+                <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
+              </div>
+              <button
+                className="text-green-500 hover:text-green-700"
+                aria-label="Success"
+              >
+                <FaCheckCircle size={18} />
+              </button>
+            </div>
+          ))}
+          <h3 className="text-right font-semibold text-green-600">
+            Subtotal: BDT  {totalDeposits.toFixed(2)}
+          </h3>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Expenses Column */}
+        <div>
+          <h2 className="text-lg font-semibold text-red-600">Expenses</h2>
+          {expenses.map((txn) => (
+            <div
+              key={txn.id}
+              className="flex justify-between items-center bg-red-100 p-3 rounded mb-2 shadow-md"
+            >
+              <div>
+                <p className="font-bold">BDT  {Math.abs(txn.amount).toFixed(2)}</p>
+                <p className="text-sm">{txn.description}</p>
+                <p className="text-xs text-gray-500">{new Date(txn.date).toLocaleDateString()}</p>
+              </div>
+              <button
+                className="text-red-500 hover:text-red-700"
+                aria-label="Delete transaction"
+              >
+                <FaCheckCircle size={18} />
+              </button>
+            </div>
+          ))}
+          <h3 className="text-right font-semibold text-red-600">
+            Subtotal: BDT  {totalExpenses.toFixed(2)}
+          </h3>
+        </div>
+      </div>
     </div>
   );
 }
