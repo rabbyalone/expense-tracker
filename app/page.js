@@ -1,8 +1,8 @@
 'use client'
 import { collection, getDocs } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { FaCheckCircle } from 'react-icons/fa'; 
-import { db } from '../firebase'; 
+import { FaCheckCircle } from 'react-icons/fa';
+import { db } from '../firebase';
 
 export default function Home() {
   const [transactions, setTransactions] = useState([]);
@@ -21,7 +21,7 @@ export default function Home() {
     fetchTransactions();
   }, []);
 
-  const deposits = transactions.filter((txn) => txn.amount > 0);
+  const deposits = transactions.filter((txn) => txn.amount > 0).sort((a, b) => a.description.localeCompare(b.description));
   const expenses = transactions.filter((txn) => txn.amount < 0);
 
   const totalDeposits = deposits.reduce((sum, txn) => sum + txn.amount, 0);
@@ -32,8 +32,9 @@ export default function Home() {
     <div className="container mx-auto p-4">
       {/* Balance Section */}
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold">Badminton 24-25</h1>
-        <h2 className="text-xl font-bold underline mt-2 bg-green-100 p-3 ">Balance: BDT  {currentBalance.toFixed(2)}</h2>
+        <h1 className="text-2xl font-bold">BADMINTON 2024-2025</h1>
+        {currentBalance >= 0 && <h2 className="text-xl font-bold underline mt-2 bg-green-100 p-3 ">Balance: BDT  {currentBalance.toFixed(2)}</h2>}
+        {currentBalance < 0 && <h2 className="text-xl text-red-600 font-bold underline mt-2 bg-green-100 p-3 ">Balance: BDT  {currentBalance.toFixed(2)}</h2>}
         <h3 className="text-green-600">Deposits: BDT  {totalDeposits.toFixed(2)}</h3>
         <h3 className="text-red-600">Expenses: BDT  {totalExpenses.toFixed(2)}</h3>
       </div>
